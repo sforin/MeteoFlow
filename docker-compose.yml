@@ -1,0 +1,192 @@
+version: '3.9'
+
+services:
+  zookeeper:
+    image: bitnami/zookeeper:3.7
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      # nc (netcat) is the official way of doing healthchecks on zookeeper
+      test: nc -z localhost 2181 || exit -1
+      interval: 5s
+      timeout: 60s
+      retries: 120
+
+  kafka:
+    restart: always
+    image: bitnami/kafka:3.9.0
+    container_name: kafka
+    depends_on:
+      zookeeper:
+          condition: service_healthy
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server kafka:9092 --list || exit 1"]
+      start_period: 15s
+      interval: 5s
+      timeout: 60s
+      retries: 120
+
+  kafdrop:
+    restart: always
+    image: obsidiandynamics/kafdrop:4.1.0
+    container_name: kafdrop
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+      zookeeper:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: meteo_user
+      POSTGRES_PASSWORD: meteo_password
+      POSTGRES_DB: meteo_data
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  producer-01:
+    build: ./producer
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - STATION_CONFIG=config/alp-01.yml
+    volumes:
+      - ./producer/config:/app/config
+
+  producer-02:
+    build: ./producer
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - STATION_CONFIG=config/alp-02.yml
+    volumes:
+      - ./producer/config:/app/config
+
+  producer-03:
+    build: ./producer
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - STATION_CONFIG=config/alp-03.yml
+    volumes:
+      - ./producer/config:/app/config
+
+  producer-04:
+    build: ./producer
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - STATION_CONFIG=config/alp-04.yml
+    volumes:
+      - ./producer/config:/app/config
+
+  producer-05:
+    build: ./producer
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - STATION_CONFIG=config/alp-05.yml
+    volumes:
+      - ./producer/config:/app/config
+
+  producer-06:
+    build: ./producer
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - STATION_CONFIG=config/alp-06.yml
+    volumes:
+      - ./producer/config:/app/config
+
+  producer-07:
+    build: ./producer
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - STATION_CONFIG=config/alp-07.yml
+    volumes:
+      - ./producer/config:/app/config
+
+  producer-08:
+    build: ./producer
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - STATION_CONFIG=config/alp-08.yml
+    volumes:
+      - ./producer/config:/app/config
+
+  producer-09:
+    build: ./producer
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - STATION_CONFIG=config/alp-09.yml
+    volumes:
+      - ./producer/config:/app/config
+
+  producer-10:
+    build: ./producer
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - STATION_CONFIG=config/alp-10.yml
+    volumes:
+      - ./producer/config:/app/config
+
+  consumer:
+    build: ./consumer
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - CONFIG_FILE=config/meteo_payload.yml
+    volumes:
+      - ./consumer/config:/app/config
+
+volumes:
+  pgdata:

@@ -1,0 +1,13 @@
+meteo_json_structure:
+  timestamp: str
+  station_id: str
+  location:
+    latitude: float
+    longitude: float
+    altitude: int
+  weather:
+    temperature: float
+    humidity: float
+    wind_speed: float
+    pressure: float
+    solar_radiation: float

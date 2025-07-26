@@ -1,0 +1,10 @@
+  consumer:
+    build: ./consumer
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - CONFIG_FILE=config/meteo_payload.yml
+    volumes:
+      - ./consumer/config:/app/config

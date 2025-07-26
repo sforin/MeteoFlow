@@ -1,0 +1,13 @@
+station_id: alp-01
+location:
+  latitude: 46.5651
+  longitude: 12.3214
+  altitude_m: 1000
+generation:
+  interval_seconds: 5
+  temperature_base: 18
+  humidity_base: 78.0
+  wind_speed_base: 8.0
+  pressure_base: 890.0
+  solar_radiation_base: 210.0
+  rain_probability: 0.15
