@@ -11,7 +11,6 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     healthcheck:
-      # nc (netcat) is the official way of doing healthchecks on zookeeper
       test: nc -z localhost 2181 || exit -1
       interval: 5s
       timeout: 60s
@@ -71,6 +70,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: always
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@meteo.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 
   api:
     build: ./api
@@ -218,6 +233,7 @@ services:
       - ./consumer/config:/app/config
 
 
-
 volumes:
   pgdata:
+  pgadmin_data:
+
