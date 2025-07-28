@@ -6,20 +6,9 @@ import logging
 import schedule
 from confluent_kafka import Producer, KafkaException
 from confluent_kafka.admin import AdminClient, NewTopic
+from utils.logger import get_logger
 
-import logging
-import sys
-
-# Configura il logger base
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)  # Scrive su stdout → visibile in Docker logs
-    ]
-)
-
-logger = logging.getLogger(__name__)
+logger = get_logger("producer")
 
 
 class MeteoData:
@@ -58,7 +47,7 @@ class MeteoData:
                 "longitude": self.__longitude,
                 "altitude": self.__altitude,
             },
-            "wether":{
+            "weather":{
                 "temperature": self.__temperature,
                 "humidity": self.__humidity,
                 "wind_speed": self.__wind_speed,

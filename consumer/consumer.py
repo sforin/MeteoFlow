@@ -1,22 +1,11 @@
 import os
 import yaml
 import json
-
+import requests
+from utils.logger import get_logger
 from confluent_kafka import Consumer
 
-import logging
-import sys
-
-# Configura il logger base
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)  # Scrive su stdout → visibile in Docker logs
-    ]
-)
-
-logger = logging.getLogger(__name__)
+logger = get_logger("consumer")
 
 class MeteoConsumer:
     def __init__(self,topic,bootstrap_servers, group_id):
@@ -41,14 +30,19 @@ class MeteoConsumer:
                 continue
 
             decoded_message = msg.value().decode('utf-8')
-            logger.info(f"decoded_message: {decoded_message}")
-            logger.info(f"type of decoded_message: {type(decoded_message)}")
-            data = json.loads(decoded_message)
-            logger.info(f"data: {data}")
-            logger.info(f"type of data: {type(data)}")
-            flattened_data = self.__extract_values(data, self.payload['meteo_json_structure'])
-            logger.info(f"flattened_data: {flattened_data}")
-            logger.info(f"type of flattened_data: {type(flattened_data)}")
+            try:
+                data = json.loads(decoded_message)
+                logger.info(f"Send data: {data}")
+                response = requests.post('http://api:8000/api/meteo', json=data)
+                response.raise_for_status()
+                logger.info(f"Saved to DB: {response.status_code}")
+            except requests.RequestException as e:
+                logger.error(f"Failed to send request to Meteo: {e}")
+            except json.JSONDecodeError:
+                logger.error(f"Failed to decode response from Meteo: {decoded_message}")
+
+
+            #flattened_data = self.__extract_values(data, self.payload['meteo_json_structure'])
 
     @staticmethod
     def __load_payload():
