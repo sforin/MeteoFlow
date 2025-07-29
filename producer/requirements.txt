@@ -2,3 +2,6 @@ kafka-python
 pyyaml
 confluent_kafka
 schedule
+pandas
+scipy
+sqlalchemy

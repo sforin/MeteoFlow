@@ -4,7 +4,7 @@ location:
   longitude: 12.3214
   altitude_m: 1000
 generation:
-  interval_seconds: 5
+  interval_seconds: 60
   temperature_base: 18
   humidity_base: 78.0
   wind_speed_base: 8.0

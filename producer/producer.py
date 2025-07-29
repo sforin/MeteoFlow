@@ -2,10 +2,15 @@ import os
 import yaml
 import time
 import json
-import logging
 import schedule
+import pandas as pd
+import random
+from scipy.interpolate import griddata
+from datetime import datetime
+import numpy as np
 from confluent_kafka import Producer, KafkaException
 from confluent_kafka.admin import AdminClient, NewTopic
+from state.utils import get_recent_data, save_new_entry
 from utils.logger import get_logger
 
 logger = get_logger("producer")
@@ -17,7 +22,7 @@ class MeteoData:
         with open(config_file, 'r') as f:
             base_data = yaml.safe_load(f)
 
-
+        self.__timestamp = int(time.time() * 1_000_000)
         self.__station_id = base_data['station_id']
         self.__latitude = base_data['location'].get('latitude')
         self.__longitude = base_data['location'].get('longitude')
@@ -31,12 +36,65 @@ class MeteoData:
         self.json = None
         self.refresh_data()
 
-    def __generate_dynamic_data(self):
-        new_temp = self.__temperature
-        new_humidity = self.__humidity
-        new_solar_radiation = self.__solar_radiation
-        new_wind_speed = self.__wind_speed
-        new_pressure = self.__pressure
+    def __get_seasonal_temperature(self):
+        current_altitude = self.__altitude
+        current_time = datetime.now()
+        temp_data = pd.read_csv("data/temperature.csv",sep=";")
+        temp_data["altitude"] = temp_data["altitude"].astype(int)
+        temp_data["hour"] = temp_data["hour"].astype(int)
+
+        month = current_time.month
+        hour = current_time.hour
+
+        hour_points = np.arange(0, 24, 4)
+        before_hour = hour_points[hour_points <= hour].max()
+        after_hour = hour_points[hour_points >= hour].min() if hour < 20 else 0
+
+        df = temp_data[temp_data["month"] == month]
+        df_before = df[df["hour"] == before_hour]
+        df_after = df[df["hour"] == after_hour]
+        logger.info(f"current altitude: {current_altitude}")
+        logger.info(f"df_before[altitude]: {len(df_before["altitude"])}")
+        logger.info(f"df_before[temperature]: {len(df_before["temperature"])}")
+        temp_before = np.interp(current_altitude, df_before["altitude"], df_before["temperature"])
+        temp_after = np.interp(current_altitude, df_after["altitude"], df_after["temperature"])
+
+        weight = (hour - before_hour) / 4 if before_hour != after_hour else 0
+        seasonal_temp = (1 - weight) * temp_before + weight * temp_after
+
+        return seasonal_temp
+
+    def __generate_temperature(self):
+        seasonal_temp = self.__get_seasonal_temperature()
+        history = get_recent_data(self.__station_id)
+        if not history:
+            return seasonal_temp + random.uniform(-2, 2)
+
+        last_temp = history[0].temperature
+        variation = random.uniform(-0.5, 0.5)
+        return round(last_temp + variation, 1)
+
+    def __generate_meteo_data(self):
+        self.__temperature = self.__generate_temperature()
+        self.__humidity = random.uniform(60, 80)
+        self.__wind_speed = random.uniform(1, 5)
+        self.__pressure = 890 + random.uniform(-2, 2)
+        self.__solar_radiation = random.uniform(100, 300)
+
+        data = {
+            "timestamp": self.__timestamp,
+            "station_id": self.__station_id,
+            "temperature": self.__temperature,
+            "humidity": self.__humidity,
+            "wind_speed": self.__wind_speed,
+            "pressure": self.__pressure,
+            "solar_radiation": self.__solar_radiation
+        }
+
+        save_new_entry(data)
+        return data
+
+
 
     def __build_json(self):
         return {
@@ -57,7 +115,7 @@ class MeteoData:
         }
 
     def refresh_data(self):
-        self.__generate_dynamic_data()
+        self.__generate_meteo_data()
         self.json = self.__build_json()
 
 
@@ -79,7 +137,6 @@ class MeteoProducer:
             print(f"[INFO] Topic '{self.topic_name}' already exists.")
             return
 
-        # Altrimenti crealo
         new_topic = NewTopic(
             topic=self.topic_name,
             num_partitions=1,
