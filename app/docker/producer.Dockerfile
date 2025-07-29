@@ -5,10 +5,10 @@ FROM python:3.12
 WORKDIR /app
 
 # Copia i file del progetto
-COPY . .
+COPY app/producer /app
 
 # Installa le dipendenze
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Avvia il producer
-CMD ["python", "consumer.py"]
+CMD ["python", "producer.py"]

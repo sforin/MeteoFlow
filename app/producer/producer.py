@@ -12,6 +12,7 @@ from confluent_kafka import Producer, KafkaException
 from confluent_kafka.admin import AdminClient, NewTopic
 from state.utils import get_recent_data, save_new_entry
 from utils.logger import get_logger
+from pathlib import Path
 
 logger = get_logger("producer")
 
@@ -37,12 +38,14 @@ class MeteoData:
         self.refresh_data()
 
     def __get_seasonal_temperature(self):
+        ROOT_DIR = Path(__file__).resolve().parents[0]
+        TEMPERATURE_CSV = ROOT_DIR / "data" / "temperature.csv"
         current_altitude = self.__altitude
         current_time = datetime.now()
-        temp_data = pd.read_csv("data/temperature.csv",sep=";")
+        
+        temp_data = pd.read_csv(TEMPERATURE_CSV,sep=";")
         temp_data["altitude"] = temp_data["altitude"].astype(int)
         temp_data["hour"] = temp_data["hour"].astype(int)
-
         month = current_time.month
         hour = current_time.hour
 
