@@ -20,7 +20,7 @@ MeteoFlow is a microservices-based data pipeline that simulates a network of dis
 # How to run the application
 
 ```bash
-gh repo clone sforin/MeteoFlow
+git clone https://github.com/sforin/MeteoFlow.git
 cd meteoflow
 docker-compose up --build
 ```
