@@ -60,7 +60,7 @@ docker-compose up --build
 - Access to Grafana at http://localhost:3000
 - Login `admin` / `admin`
 - Dashboard `Temperature`
-- Configurable varible `StationId`
+- Configurable variable `StationId`
 
 # PostgreSQL database
 
@@ -75,10 +75,11 @@ database: meteo_data
 # Screenshot
 
 - Grafana dahsboard
+![alt text](docs\image-2.png)
 - Kafdrop
-![alt text](image.png)
+![alt text](docs\image.png)
 - pgAdmin
-![alt text](image-1.png)
+![alt text](docs\image-1.png)
 
 # License
 

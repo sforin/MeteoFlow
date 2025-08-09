@@ -5,3 +5,4 @@ schedule
 pandas
 scipy
 sqlalchemy
+pathlib
