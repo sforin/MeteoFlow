@@ -1,0 +1,14 @@
+{
+    "agrometeorology":[
+        {
+            "uri": "https://api.arpa.veneto.it/REST/v1/meteo_60gg_tabella?codseqst=300000140",
+            "station_name": "Farra di Soligo",
+            "id": "300000140"
+        },
+        {
+            "uri": "https://api.arpa.veneto.it/REST/v1/meteo_60gg_tabella?codseqst=300001580",
+            "station_name": "Santa Giustina Bellunese",
+            "id": "300001580"
+        }
+    ]
+}

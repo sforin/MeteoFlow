@@ -1,0 +1,14 @@
+arpav_meteoagro_structure:
+  data:
+    - codice
+    - nome_stazione
+    - nome_sensore
+    - dataora
+    - valore
+    - unitnm
+    - tipo
+    - aggiornamento
+    - precisionefalda
+  meta:
+    - total
+    - first
